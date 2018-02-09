@@ -1,0 +1,17 @@
+[Unit]
+Description=rTorrent
+After=network.target
+
+[Service]
+Type=forking
+KillMode=none
+User=rtorrent
+Group=media
+ExecStartPre=/usr/bin/bash -c "if test -e /opt/rtorrent/session/rtorrent.lock && test -z `pidof rtorrent`; then rm -f /opt/rtorrent/session/rtorrent.lock; fi"
+ExecStart="/usr/bin/screen -dmfa -S rtorrent '/usr/local/bin/rtorrent -n -o import=/opt/rtorrent/rtorrent.rc'"
+ExecStop=/usr/bin/bash -c "test `pidof rtorrent` && killall -w -s 2 /usr/local/bin/rtorrent"
+WorkingDirectory=/opt/rtorrent
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

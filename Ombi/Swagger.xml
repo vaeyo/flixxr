@@ -1,0 +1,1044 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Ombi</name>
+    </assembly>
+    <members>
+        <member name="M:Ombi.Controllers.External.EmbyController.#ctor(Ombi.Api.Emby.IEmbyApi,Ombi.Core.Settings.ISettingsService{Ombi.Core.Settings.Models.External.EmbySettings})">
+            <summary>
+            
+            </summary>
+            <param name="emby"></param>
+            <param name="embySettings"></param>
+        </member>
+        <member name="M:Ombi.Controllers.External.EmbyController.SignIn(Ombi.Core.Settings.Models.External.EmbySettings)">
+            <summary>
+            Signs into the Emby Api
+            </summary>
+            <param name="request">The request.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.EmbyController.EmbyUsers">
+            <summary>
+            Gets the emby users.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.PlexController.SignIn(Ombi.Api.Plex.Models.UserRequest)">
+            <summary>
+            Signs into the Plex API.
+            </summary>
+            <param name="request">The request.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.PlexController.GetPlexLibraries(Ombi.Core.Settings.Models.External.PlexServers)">
+            <summary>
+            Gets the plex libraries.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.PlexController.GetServers(Ombi.Api.Plex.Models.UserRequest)">
+            <summary>
+            Gets the plex servers.
+            </summary>
+            <param name="u">The u.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.PlexController.GetFriends">
+            <summary>
+            Gets the plex friends.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.RadarrController.GetProfiles(Ombi.Settings.Settings.Models.External.RadarrSettings)">
+            <summary>
+            Gets the Radarr profiles.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.RadarrController.GetRootFolders(Ombi.Settings.Settings.Models.External.RadarrSettings)">
+            <summary>
+            Gets the Radar root folders.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.RadarrController.GetProfiles">
+            <summary>
+            Gets the Radarr profiles using the saved settings
+            <remarks>The data is cached for an hour</remarks>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.RadarrController.GetRootFolders">
+            <summary>
+            Gets the Radar root folders using the saved settings.
+            <remarks>The data is cached for an hour</remarks>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.SonarrController.GetProfiles(Ombi.Settings.Settings.Models.External.SonarrSettings)">
+            <summary>
+            Gets the Sonarr profiles.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.SonarrController.GetRootFolders(Ombi.Settings.Settings.Models.External.SonarrSettings)">
+            <summary>
+            Gets the Sonarr root folders.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Ombi.Controllers.External.TesterController">
+            <summary>
+            The Tester Controller
+            </summary>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.#ctor(Ombi.Core.Notifications.INotificationService,Ombi.Notifications.Agents.IDiscordNotification,Ombi.Notifications.Agents.IEmailNotification,Ombi.Notifications.Agents.IPushbulletNotification,Ombi.Notifications.Agents.ISlackNotification,Ombi.Notifications.Agents.IPushoverNotification,Ombi.Notifications.Agents.IMattermostNotification,Ombi.Api.Plex.IPlexApi,Ombi.Api.Emby.IEmbyApi,Ombi.Api.Radarr.IRadarrApi,Ombi.Api.Sonarr.ISonarrApi,Microsoft.Extensions.Logging.ILogger{Ombi.Controllers.External.TesterController},Ombi.Notifications.IEmailProvider,Ombi.Api.CouchPotato.ICouchPotatoApi,Ombi.Notifications.Agents.ITelegramNotification,Ombi.Api.SickRage.ISickRageApi)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ombi.Controllers.External.TesterController" /> class.
+            </summary>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Discord(Ombi.Settings.Settings.Models.Notifications.DiscordNotificationSettings)">
+            <summary>
+            Sends a test message to discord using the provided settings
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Pushbullet(Ombi.Settings.Settings.Models.Notifications.PushbulletSettings)">
+            <summary>
+            Sends a test message to Pushbullet using the provided settings
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Pushover(Ombi.Settings.Settings.Models.Notifications.PushoverSettings)">
+            <summary>
+            Sends a test message to Pushover using the provided settings
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Mattermost(Ombi.Settings.Settings.Models.Notifications.MattermostNotificationSettings)">
+            <summary>
+            Sends a test message to mattermost using the provided settings
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Slack(Ombi.Settings.Settings.Models.Notifications.SlackNotificationSettings)">
+            <summary>
+            Sends a test message to Slack using the provided settings
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Email(Ombi.Settings.Settings.Models.Notifications.EmailNotificationSettings)">
+            <summary>
+            Sends a test message via email to the admin email using the provided settings
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Plex(Ombi.Core.Settings.Models.External.PlexServers)">
+            <summary>
+            Checks if we can connect to Plex with the provided settings
+            </summary>
+            <param name="settings"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Emby(Ombi.Core.Settings.Models.External.EmbyServers)">
+            <summary>
+            Checks if we can connect to Emby with the provided settings
+            </summary>
+            <param name="settings"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Radarr(Ombi.Settings.Settings.Models.External.RadarrSettings)">
+            <summary>
+            Checks if we can connect to Radarr with the provided settings
+            </summary>
+            <param name="settings"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Sonarr(Ombi.Settings.Settings.Models.External.SonarrSettings)">
+            <summary>
+            Checks if we can connect to Sonarr with the provided settings
+            </summary>
+            <param name="settings"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.CouchPotato(Ombi.Settings.Settings.Models.External.CouchPotatoSettings)">
+            <summary>
+            Checks if we can connect to Sonarr with the provided settings
+            </summary>
+            <param name="settings"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.Telegram(Ombi.Settings.Settings.Models.Notifications.TelegramSettings)">
+            <summary>
+            Sends a test message to Telegram using the provided settings
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.External.TesterController.SickRage(Ombi.Settings.Settings.Models.External.SickRageSettings)">
+            <summary>
+            Sends a test message to Slack using the provided settings
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.HomeController.Index">
+            <summary>
+            Indexes this instance.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Ombi.Controllers.IdentityController">
+            <inheritdoc />
+            <summary>
+            The Identity Controller, the API for everything Identity/User related
+            </summary>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.CreateWizardUser(Ombi.Models.CreateUserWizardModel)">
+            <summary>
+            This is what the Wizard will call when creating the user for the very first time.
+            This should never be called after this.
+            The reason why we return false if users exists is that this method doesn't have any 
+            authorization and could be called from anywhere.
+            </summary>
+            <remarks>We have [AllowAnonymous] since when going through the wizard we do not have a JWT Token yet</remarks>
+            <param name="user"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.GetAllUsers">
+            <summary>
+            Gets all users.
+            </summary>
+            <returns>Information about all users</returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.GetCurrentUser">
+            <summary>
+            Gets the current logged in user.
+            </summary>
+            <returns>Information about all users</returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.GetUser(System.String)">
+            <summary>
+            Gets the user by the user id.
+            </summary>
+            <returns>Information about the user</returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.CreateUser(Ombi.Core.Models.UI.UserViewModel)">
+            <summary>
+            Creates the user.
+            </summary>
+            <param name = "user" > The user.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.UpdateLocalUser(Ombi.Models.Identity.UpdateLocalUserModel)">
+            <summary>
+            This is for the local user to change their details.
+            </summary>
+            <param name="ui"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.UpdateUser(Ombi.Core.Models.UI.UserViewModel)">
+            <summary>
+            Updates the user.
+            </summary>
+            <param name = "ui" > The user.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.DeleteUser(System.String)">
+            <summary>
+            Deletes the user.
+            </summary>
+            <param name="userId">The user.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.GetAllClaims">
+            <summary>
+            Gets all available claims in the system.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.SubmitResetPassword(Ombi.Models.Identity.SubmitPasswordReset)">
+            <summary>
+            Send out the email with the reset link
+            </summary>
+            <param name="email"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IdentityController.ResetPassword(Ombi.Models.Identity.ResetPasswordToken)">
+            <summary>
+            Resets the password
+            </summary>
+            <param name="token"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.Categories">
+            <summary>
+            Get's all categories
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.CreateCategory(Ombi.Store.Entities.Requests.IssueCategory)">
+            <summary>
+            Creates a new category
+            </summary>
+            <param name="cat"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.DeleteCategory(System.Int32)">
+            <summary>
+            Deletes a Category
+            </summary>
+            <param name="catId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.GetIssues">
+            <summary>
+            Returns all the issues
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.GetIssues(System.Int32,System.Int32,Ombi.Store.Entities.Requests.IssueStatus)">
+            <summary>
+            Returns all the issues
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.GetIssueCount">
+            <summary>
+            Returns all the issues count
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.CreateIssue(Ombi.Store.Entities.Requests.Issues)">
+            <summary>
+            Create Movie Issue
+            </summary>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.GetIssue(System.Int32)">
+            <summary>
+            Returns the issue by Id
+            </summary>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.GetComments(System.Int32)">
+            <summary>
+            Get's all the issue comments by id
+            </summary>
+        </member>
+        <member name="M:Ombi.Controllers.IssuesController.AddComment(Ombi.Models.NewIssueCommentViewModel)">
+            <summary>
+            Adds a comment on an issue
+            </summary>
+        </member>
+        <member name="M:Ombi.Controllers.JobController.ForceUpdate">
+            <summary>
+            Runs the update job
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.JobController.CheckForUpdate">
+            <summary>
+            Checks for an update
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.JobController.PlexUserImporter">
+            <summary>
+            Runs the Plex User importer
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.JobController.EmbyUserImporter">
+            <summary>
+            Runs the Emby User importer
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.JobController.StartPlexContentCacher">
+            <summary>
+            Runs the Plex Content Cacher
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.JobController.StartEmbyContentCacher">
+            <summary>
+            Runs the Emby Content Cacher
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.GetRequests(System.Int32,System.Int32)">
+            <summary>
+            Gets movie requests.
+            </summary>
+            <param name="count">The count of items you want to return.</param>
+            <param name="position">The position.</param>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.GetRequests">
+            <summary>
+            Gets all movie requests.
+            </summary>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.RequestMovie(Ombi.Core.Models.Requests.MovieRequestViewModel)">
+            <summary>
+            Requests a movie.
+            </summary>
+            <param name="movie">The movie.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.Search(System.String)">
+            <summary>
+            Searches for a specific movie request
+            </summary>
+            <param name="searchTerm">The search term.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.DeleteRequest(System.Int32)">
+            <summary>
+            Deletes the specified movie request.
+            </summary>
+            <param name="requestId">The request identifier.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.UpdateRequest(Ombi.Store.Entities.Requests.MovieRequests)">
+            <summary>
+            Updates the specified movie request.
+            </summary>
+            <param name="model">The Movie's ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.ApproveMovie(Ombi.Core.Models.Requests.MovieUpdateModel)">
+            <summary>
+            Approves the specified movie request.
+            </summary>
+            <param name="model">The Movie's ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.MarkMovieAvailable(Ombi.Core.Models.Requests.MovieUpdateModel)">
+            <summary>
+            Set's the specified Movie as available 
+            </summary>
+            <param name="model">The Movie's ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.MarkMovieUnAvailable(Ombi.Core.Models.Requests.MovieUpdateModel)">
+            <summary>
+            Set's the specified Movie as unavailable 
+            </summary>
+            <param name="model">The Movie's ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.DenyMovie(Ombi.Core.Models.Requests.MovieUpdateModel)">
+            <summary>
+            Denies the specified movie request.
+            </summary>
+            <param name="model">The Movie's ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.GetTvRequestsTree(System.Int32,System.Int32)">
+            <summary>
+            Gets the tv requests.
+            </summary>
+            <param name="count">The count of items you want to return.</param>
+            <param name="position">The position.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.GetTvRequests(System.Int32,System.Int32)">
+            <summary>
+            Gets the tv requests.
+            </summary>
+            <param name="count">The count of items you want to return.</param>
+            <param name="position">The position.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.GetTvRequests">
+            <summary>
+            Gets the tv requests.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.RequestTv(Ombi.Core.Models.Search.SearchTvShowViewModel)">
+            <summary>
+            Requests a tv show/episode/season.
+            </summary>
+            <param name="tv">The tv.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.SearchTv(System.String)">
+            <summary>
+            Searches for a specific tv request
+            </summary>
+            <param name="searchTerm">The search term.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.SearchTvTree(System.String)">
+            <summary>
+            Searches for a specific tv request
+            </summary>
+            <param name="searchTerm">The search term.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.DeleteTvRequest(System.Int32)">
+            <summary>
+            Deletes the a specific tv request
+            </summary>
+            <param name="requestId">The request identifier.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.UpdateRequest(Ombi.Store.Entities.Requests.TvRequests)">
+            <summary>
+            Updates the a specific tv request
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.UpdateChild(Ombi.Store.Entities.Requests.ChildRequests)">
+            <summary>
+            Updates the a specific child request
+            </summary>
+            <param name="child">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.DenyChild(Ombi.Models.TvUpdateModel)">
+            <summary>
+            Denies the a specific child request
+            </summary>
+            <param name="model">This is the child request's ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.MarkTvAvailable(Ombi.Models.TvUpdateModel)">
+            <summary>
+            Set's the specified tv child as available 
+            </summary>
+            <param name="model">The Movie's ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.MarkTvUnAvailable(Ombi.Models.TvUpdateModel)">
+            <summary>
+            Set's the specified tv child as unavailable 
+            </summary>
+            <param name="model">The Movie's ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.ApproveChild(Ombi.Models.TvUpdateModel)">
+            <summary>
+            Updates the a specific child request
+            </summary>
+            <param name="model">This is the child request's ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.DeleteChildRequest(System.Int32)">
+            <summary>
+            Deletes the a specific tv request
+            </summary>
+            <param name="requestId">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.GetAllChildren(System.Int32)">
+            <summary>
+            Retuns all children requests for the request id
+            </summary>
+            <param name="requestId">The Request Id</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.GetCountOfRequests">
+            <summary>
+            Gets the count of total requests
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.UserHasRequest(System.String)">
+            <summary>
+            Checks if the passed in user has a request
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.RequestController.Filter(Ombi.Core.Models.Requests.FilterViewModel)">
+            <summary>
+            Returns a filtered list
+            </summary>
+            <param name="vm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.SearchMovie(System.String)">
+            <summary>
+            Searches for a movie.
+            </summary>
+            <remarks>We use TheMovieDb as the Movie Provider</remarks>
+            <param name="searchTerm">The search term.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.GetExtraMovieInfo(System.Int32)">
+            <summary>
+            Gets extra information on the movie e.g. IMDBId
+            </summary>
+            <param name="theMovieDbId">The movie database identifier.</param>
+            <returns></returns>
+            <remarks>
+            We use TheMovieDb as the Movie Provider
+            </remarks>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.Popular">
+            <summary>
+            Returns Popular Movies
+            </summary>
+            <remarks>We use TheMovieDb as the Movie Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.NowPlayingMovies">
+            <summary>
+            Retuns Now Playing Movies
+            </summary>
+            <remarks>We use TheMovieDb as the Movie Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.TopRatedMovies">
+            <summary>
+            Returns top rated movies.
+            </summary>
+            <returns></returns>
+            <remarks>We use TheMovieDb as the Movie Provider</remarks>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.UpcomingMovies">
+            <summary>
+            Returns Upcoming movies.
+            </summary>
+            <remarks>We use TheMovieDb as the Movie Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.SearchTv(System.String)">
+            <summary>
+            Searches for a Tv Show.
+            </summary>
+            <param name="searchTerm">The search term.</param>
+            <remarks>We use TvMaze as the Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.SearchTvTreeNode(System.String)">
+            <summary>
+            Searches for a Tv Show.
+            </summary>
+            <param name="searchTerm">The search term.</param>
+            <remarks>We use TvMaze as the Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.GetShowInfoTreeNode(System.Int32)">
+            <summary>
+            Gets extra show information.
+            </summary>
+            <param name="tvdbId">The TVDB identifier.</param>
+            <remarks>We use TvMaze as the Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.GetShowInfo(System.Int32)">
+            <summary>
+            Gets extra show information.
+            </summary>
+            <param name="tvdbId">The TVDB identifier.</param>
+            <remarks>We use TvMaze as the Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.PopularTv">
+            <summary>
+            Returns Popular Tv Shows
+            </summary>
+            <remarks>We use Trakt.tv as the Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.AnticiplatedTv">
+            <summary>
+            Returns most Anticiplateds tv shows.
+            </summary>
+            <remarks>We use Trakt.tv as the Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.MostWatched">
+            <summary>
+            Returns Most watched shows.
+            </summary>
+            <remarks>We use Trakt.tv as the Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SearchController.Trending">
+            <summary>
+            Returns trending shows
+            </summary>
+            <remarks>We use Trakt.tv as the Provider</remarks>
+            <returns></returns>
+        </member>
+        <member name="T:Ombi.Controllers.SettingsController">
+            <inheritdoc />
+            <summary>
+            The Settings Controller
+            </summary>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.#ctor(Ombi.Core.Settings.ISettingsResolver,AutoMapper.IMapper,Ombi.Store.Repository.INotificationTemplatesRepository,Ombi.Api.Emby.IEmbyApi,Ombi.Schedule.Jobs.Radarr.IRadarrSync,Ombi.Helpers.ICacheService,Ombi.Api.Github.IGithubApi)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ombi.Controllers.SettingsController" /> class.
+            </summary>
+            <param name="resolver">The resolver.</param>
+            <param name="mapper">The mapper.</param>
+            <param name="templateRepo">The templateRepo.</param>
+            <param name="embyApi">The embyApi.</param>
+            <param name="radarrSync">The radarrCacher.</param>
+            <param name="memCache">The memory cache.</param>
+            <param name="githubApi">The memory cache.</param>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.OmbiSettings">
+            <summary>
+            Gets the Ombi settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.OmbiSettings(Ombi.Settings.Settings.Models.OmbiSettings)">
+            <summary>
+            Save the Ombi settings.
+            </summary>
+            <param name="ombi">The ombi.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.PlexSettings">
+            <summary>
+            Gets the Plex Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.PlexSettings(Ombi.Core.Settings.Models.External.PlexSettings)">
+            <summary>
+            Save the Plex settings.
+            </summary>
+            <param name="plex">The plex.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.EmbySettings">
+            <summary>
+            Gets the Emby Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.EmbySettings(Ombi.Core.Settings.Models.External.EmbySettings)">
+            <summary>
+            Save the Emby settings.
+            </summary>
+            <param name="emby">The emby.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.LandingPageSettings">
+            <summary>
+            Gets the Landing Page Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.LandingPageSettings(Ombi.Core.Settings.Models.LandingPageSettings)">
+            <summary>
+            Save the Landing Page settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.CustomizationSettings">
+            <summary>
+            Gets the Customization Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.CustomizationSettings(Ombi.Settings.Settings.Models.CustomizationSettings)">
+            <summary>
+            Save the Customization settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.GetThemes">
+            <summary>
+            Get's the preset themes available
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.GetThemeContent(System.String)">
+            <summary>
+            Gets the content of the theme available
+            </summary>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.SonarrSettings">
+            <summary>
+            Gets the Sonarr Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.SonarrSettings(Ombi.Settings.Settings.Models.External.SonarrSettings)">
+            <summary>
+            Save the Sonarr settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.RadarrSettings">
+            <summary>
+            Gets the Radarr Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.AuthenticationsSettings(Ombi.Settings.Settings.Models.AuthenticationSettings)">
+            <summary>
+            Save the Authentication settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.AuthenticationsSettings">
+            <summary>
+            Gets the Authentication Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.RadarrSettings(Ombi.Settings.Settings.Models.External.RadarrSettings)">
+            <summary>
+            Save the Radarr settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.UpdateSettings(Ombi.Settings.Settings.Models.UpdateSettings)">
+            <summary>
+            Save the Update settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.UserManagementSettings">
+            <summary>
+            Gets the UserManagement Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.UserManagementSettings(Ombi.Settings.Settings.Models.UserManagementSettings)">
+            <summary>
+            Save the UserManagement settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.UpdateSettings">
+            <summary>
+            Gets the Update Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.CouchPotatoSettings">
+            <summary>
+            Gets the CouchPotatoSettings Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.CouchPotatoSettings(Ombi.Settings.Settings.Models.External.CouchPotatoSettings)">
+            <summary>
+            Save the CouchPotatoSettings settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.DogNzbSettings">
+            <summary>
+            Gets the DogNzbSettings Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.DogNzbSettings(Ombi.Settings.Settings.Models.External.DogNzbSettings)">
+            <summary>
+            Save the DogNzbSettings settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.SickRageSettings(Ombi.Settings.Settings.Models.External.SickRageSettings)">
+            <summary>
+            Save the SickRage settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.SickRageSettings">
+            <summary>
+            Gets the SickRage Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.JobSettings">
+            <summary>
+            Gets the JobSettings Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.JobSettings(Ombi.Settings.Settings.Models.JobSettings)">
+            <summary>
+            Save the JobSettings settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.IssueSettings(Ombi.Settings.Settings.Models.IssueSettings)">
+            <summary>
+            Save the Issues settings.
+            </summary>
+            <param name="settings">The settings.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.IssueSettings">
+            <summary>
+            Gets the Issues Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.EmailNotificationSettings(Ombi.Core.Models.UI.EmailNotificationsViewModel)">
+            <summary>
+            Saves the email notification settings.
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.EmailNotificationSettings">
+            <summary>
+            Gets the Email Notification Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.EmailNotificationSettingsEnabled">
+            <summary>
+            Gets the Email Notification Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.DiscordNotificationSettings(Ombi.Core.Models.UI.DiscordNotificationsViewModel)">
+            <summary>
+            Saves the discord notification settings.
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.DiscordNotificationSettings">
+            <summary>
+            Gets the discord Notification Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.TelegramNotificationSettings(Ombi.Core.Models.UI.TelegramNotificationsViewModel)">
+            <summary>
+            Saves the telegram notification settings.
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.TelegramNotificationSettings">
+            <summary>
+            Gets the telegram Notification Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.PushbulletNotificationSettings(Ombi.Core.Models.UI.PushbulletNotificationViewModel)">
+            <summary>
+            Saves the pushbullet notification settings.
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.PushbulletNotificationSettings">
+            <summary>
+            Gets the pushbullet Notification Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.PushoverNotificationSettings(Ombi.Core.Models.UI.PushoverNotificationViewModel)">
+            <summary>
+            Saves the pushover notification settings.
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.PushoverNotificationSettings">
+            <summary>
+            Gets the pushover Notification Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.SlacktNotificationSettings(Ombi.Core.Models.UI.SlackNotificationsViewModel)">
+            <summary>
+            Saves the slack notification settings.
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.SlackNotificationSettings">
+            <summary>
+            Gets the slack Notification Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.MattermostNotificationSettings(Ombi.Core.Models.UI.MattermostNotificationsViewModel)">
+            <summary>
+            Saves the Mattermost notification settings.
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.MattermostNotificationSettings">
+            <summary>
+            Gets the Mattermost Notification Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.MobileNotificationSettings(Ombi.Core.Models.UI.MobileNotificationsViewModel)">
+            <summary>
+            Saves the Mobile notification settings.
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.SettingsController.MobileNotificationSettings">
+            <summary>
+            Gets the Mobile Notification Settings.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.StatusController.GetStatus">
+            <summary>
+            Gets the status of Ombi.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.StatusController.WizardStatus">
+            <summary>
+            Checks to see if we have run through the wizard
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.TokenController.GetToken(Ombi.Models.UserAuthModel)">
+            <summary>
+            Gets the token.
+            </summary>
+            <param name="model">The model.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Ombi.Controllers.TokenController.RefreshToken(Ombi.Controllers.TokenController.TokenRefresh)">
+            <summary>
+            Refreshes the token.
+            </summary>
+            <param name="token">The model.</param>
+            <returns></returns>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
+    </members>
+</doc>

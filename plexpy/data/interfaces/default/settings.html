@@ -1,0 +1,2759 @@
+<%inherit file="base.html"/>
+<%!
+    import os
+    import sys
+
+    import plexpy
+    from plexpy import common, notifiers, versioncheck
+    from plexpy.helpers import anon_url
+
+    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
+%>
+<%def name="headIncludes()">
+</%def>
+
+<%def name="headerIncludes()">
+</%def>
+
+<%def name="body()">
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class='card-back-full'>
+                <div class="header-bar">
+                    <span><i class="fa fa-cogs"></i> Settings</span>
+                </div>
+                <div class="button-bar">
+                    % if config['check_github']:
+                    <button id="menu_link_update_check" class="btn btn-dark"><i class="fa fa-arrow-circle-up"></i> Check for Updates</button>
+                    % endif
+                    <button id="menu_link_restart" class="btn btn-dark"><i class="fa fa-refresh"></i> Restart</button>
+                    <button id="menu_link_shutdown" class="btn btn-dark"><i class="fa fa-power-off"></i> Shut Down</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Nav tabs -->
+        <div class="col-md-3">
+            <ul class="nav-settings list-unstyled" role="tablist">
+                <li role="presentation" class="active"><a href="#tabs-0" aria-controls="tabs-0" role="tab" data-toggle="tab">Help & Info</a></li>
+                <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
+                <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Homepage</a></li>
+                <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Web Interface</a></li>
+                <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Access Control</a></li>
+                <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex Media Server</a></li>
+                <li role="presentation"><a href="#tabs-6" aria-controls="tabs-6" role="tab" data-toggle="tab">Plex.tv Account</a></li>
+                <li role="presentation"><a href="#tabs-7" aria-controls="tabs-7" role="tab" data-toggle="tab">Extra Settings</a></li>
+                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Activity Monitoring</a></li>
+                <li role="presentation"><a href="#tabs-9" aria-controls="tabs-9" role="tab" data-toggle="tab">Notifications</a></li>
+                <li role="presentation"><a href="#tabs-10" aria-controls="tabs-10" role="tab" data-toggle="tab">Notification Agents</a></li>
+            </ul>
+        </div>
+        <div class="col-md-9">
+            <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="tabs-0">
+                        % if common.VERSION_NUMBER:
+                        <div class="padded-header">
+                            <h3>Version ${common.VERSION_NUMBER} <small><a href="#changelog-modal" data-toggle="modal"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
+                        </div>
+                        % endif
+                        <div class="padded-header">
+                            <h3>PlexPy Configuration</h3>
+                        </div>
+                        <div id="plexpy-configuration-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading configuration table...</div>
+                            <br>
+                        </div>
+                        <div class="padded-header">
+                            <h3>PlexPy Scheduled Tasks</h3>
+                        </div>
+                        <div id="plexpy-scheduler-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading scheduler table...</div>
+                            <br>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-1">
+                        <div class="padded-header">
+                            <h3>Updates</h3>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
+                            </label>
+                            <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
+                        </div>
+                        <div id="git_update_options">
+                            <div class="form-group">
+                                <label for="git_token">GitHub API Token</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="git_token" name="git_token" value="${config['git_token']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
+                            </div>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Display Settings</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_format">Date Format</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="date_format" name="date_format" value="${config['date_format']}" data-parsley-trigger="change" required>
+                                </div>
+                            </div>
+                            <p class="help-block">Set your preferred date format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_format">Time Format</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" id="time_format" name="time_format" value="${config['time_format']}" data-parsley-trigger="change" required>
+                                </div>
+                            </div>
+                            <p class="help-block">Set your preferred time format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="week_start_monday" name="week_start_monday" value="1" ${config['week_start_monday']}> Week Starting on Monday
+                            </label>
+                            <p class="help-block">Change the "<em>Play by day of week</em>" graph to start on Monday. Default is start on Sunday.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Table and Watch Statistics History
+                            </label>
+                            <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="history_table_activity" name="history_table_activity" value="1" ${config['history_table_activity']}> Current Activity in History Tables
+                            </label>
+                            <p class="help-block">Include current activity in the history tables. Statistics will not be counted until the stream has ended.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="notify_watched_percent">Watched Percent</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" data-parsley-errors-container="#notify_watched_percent_error" required>
+                                </div>
+                                <div id="notify_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the percentage for a media item to be considered as watched. Minimum 50, Maximum 95.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Backup</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="backup_interval">Backup Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="backup_interval" name="backup_interval" value="${config['backup_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#backup_interval_error" required>
+                                </div>
+                                <div id="backup_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) PlexPy will backup the database and configuration file. Minimum 1, maximum 24, default 6.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="backup_interval">Backup Days</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="backup_days" name="backup_days" value="${config['backup_days']}" size="5" data-parsley-min="1" data-parsley-trigger="change" data-parsley-errors-container="#backup_days_error" required>
+                                </div>
+                                <div id="backup_days_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                The number of days to keep scheduled backups. Minimum 1, default 3.<br />
+                                Note: Manual backups are not removed automatically.
+                            </p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Directories</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="backup_dir">Backup Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="backup_config">Backup Config</button>
+                                        <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cache_dir">Cache Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_cache">Clear All Cache</button>
+                                        <button class="btn btn-form" type="button" id="clear_image_cache">Clear Image Cache</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="log_dir">Log Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-2">
+                        <div class="padded-header">
+                            <h3>Sections</h3>
+                        </div>
+
+                        <p class="help-block">
+                            Select the sections to show on the homepage.
+                            Drag the items below to reorder your homepage content.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled" id="sortable_home_sections" data-parsley-trigger="change">
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-current_activity" name="hsec-current_activity" value="current_activity"> Current Activity
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-watch_stats" name="hsec-watch_stats" value="watch_stats"> Watch Statistics
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-library_stats" name="hsec-library_stats" value="library_stats"> Library Statistics
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-recently_added" name="hsec-recently_added" value="recently_added"> Recently Added
+                                        </label>
+                                    </li>
+                                </ul>
+                                <input type="text" id="home_sections" name="home_sections" style="display: none;"/>
+                            </div>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Watch Statistics</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <p class="help-block">
+                                Select the cards to show in the watch statistics on the home page.
+                                Drag the items below to reorder your homepage content.
+                            </p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled" id="sortable_home_stats_cards" data-parsley-trigger="change">
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_movies" name="hscard-top_movies" value="top_movies"> Most Watched Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_movies" name="hscard-popular_movies" value="popular_movies"> Most Popular Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_tv" name="hscard-top_tv" value="top_tv"> Most Watched TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_tv" name="hscard-popular_tv" value="popular_tv"> Most Popular TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_music" name="hscard-top_music" value="top_music"> Most Listened to Artist
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_music" name="hscard-popular_music" value="popular_music"> Most Popular Artist
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-last_watched" name="hscard-last_watched" value="last_watched"> Last Watched
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_users" name="hscard-top_users" value="top_users"> Most Active User
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_platforms" name="hscard-top_platforms" value="top_platforms"> Most Active Platform
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-most_concurrent" name="hscard-most_concurrent" value="most_concurrent"> Most Concurrent Streams
+                                            </label>
+                                        </li>
+                                    </ul>
+                                    <input type="text" id="home_stats_cards" name="home_stats_cards" style="display: none;" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="home_stats_length">Time Frame</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="home_stats_length" name="home_stats_length" value="${config['home_stats_length']}" size="3" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#home_stats_length_error" required>
+                                </div>
+                                <div id="home_stats_length_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Specify the number of days for the watch statistics on the home page. Default is 30 days.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="home_stats_count">Top Lists</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="home_stats_count" name="home_stats_count" value="${config['home_stats_count']}" size="3" data-parsley-range="[0,10]" data-parsley-trigger="change" data-parsley-errors-container="#home_stats_count_error" required>
+                                </div>
+                                <div id="home_stats_count_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Specify the number of items to show in the top lists for the watch statistics on the home page. Maximum 10 items, default 5 items, 0 to disable.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="home_stats_type" name="home_stats_type" value="1" ${config['home_stats_type']}> Use Play Duration
+                            </label>
+                            <p class="help-block">Use play duration instead of play count to generate statistics.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Library Statistics</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <p class="help-block">
+                                Select the cards to show in the library statistics on the home page.
+                                Drag the items below to reorder your homepage content.
+                            </p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled" id="sortable_home_library_cards" data-parsley-trigger="change"></ul>
+                                    <input type="text" id="home_library_cards" name="home_library_cards" style="display: none;" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-3">
+                        <div class="padded-header">
+                            <h3>Web Interface</h3>
+                        </div>
+                        <p class="help-block">Web interface changes require a restart.</p>
+                        <div class="form-group">
+                            <label for="http_host">HTTP Host</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control http-settings" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required>
+                                </div>
+                            </div>
+                            <p class="help-block">e.g. localhost or an IP, such as 0.0.0.0</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="http_port">HTTP Port</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control http-settings" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" data-parsley-trigger="change" data-parsley-errors-container="#http_port_error" required>
+                                </div>
+                                <div id="http_port_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="http_root">HTTP Root</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control http-settings" id="http_root" name="http_root" value="${config['http_root']}" data-parsley-trigger="change">
+                                </div>
+                            </div>
+                            <p class="help-block">The base URL of the web server. Used for reverse proxies.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="http-settings" name="http_proxy" id="http_proxy" value="1" ${config['http_proxy']}> Enable HTTP Proxy
+                            </label>
+                            <p class="help-block">Respect the X-Forwarded-Proto header. Used for reverse proxies with SSL.</p>
+                        </div>
+                        <br />
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
+                            </label>
+                            <p class="help-block">Launch browser pointed to PlexPy on startup.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="http-settings" name="enable_https" id="enable_https" value="1" ${config['enable_https']} /> Enable HTTPS
+                            </label>
+                            <p class="help-block">Enable HTTPS for web server for encrypted communication.</p>
+                        </div>
+                        <div id="https_options">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" class="http-settings" name="https_create_cert" id="https_create_cert" value="1" ${config['https_create_cert']} /> Create Self-signed Certificate
+                                </label>
+                                <p class="help-block">Check to have PlexPy create a self-signed SSL certificate. Uncheck if you want to use your own certificate.</p>
+                            </div>
+                            <div id="https_options_self-signed">
+                                <div class="form-group">
+                                    <label for="https_domain">HTTPS Domains</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control http-settings" id="https_domain" name="https_domain" value="${config['https_domain']}">
+                                        </div>
+                                    </div>
+                                    <p class="help-block">The domain names used to access PlexPy, separated by commas (,).</p>
+                                </div>
+                                <div class="form-group">
+                                    <label for="https_ip">HTTPS IPs</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control http-settings" id="https_ip" name="https_ip" value="${config['https_ip']}">
+                                        </div>
+                                    </div>
+                                    <p class="help-block">The IP addresses used to access PlexPy, separated by commas (,).</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="https_cert">HTTPS Cert</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL certificate.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="https_key">HTTPS Key</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL key.</p>
+                            </div>
+                        </div>
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-4">
+
+                        <div class="padded-header">
+                            <h3>Authentication</h3>
+                        </div>
+                        <p class="help-block">Authentication changes require a restart.</p>
+                        <div class="form-group">
+                            <label for="http_username">HTTP Username</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control auth-settings" id="http_username" name="http_username" value="${config['http_username']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Username for web server authentication. Leave empty to disable.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="http_password">HTTP Password</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="password" class="form-control auth-settings" id="http_password" name="http_password" value="${config['http_password']}" size="30">
+                                </div>
+                                <div id="http_hash_password_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Password for web server authentication. Leave empty to disable.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="http_hash_password" id="http_hash_password" value="1" ${config['http_hash_password']} data-parsley-trigger="change"> Hash Password in the Config File
+                            </label>
+                            <span id="hashPasswordCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Store a hashed password in the config file.<br />Warning: Your password cannot be recovered if forgotten!</p>
+                        </div>
+                        <input type="text" id="http_hashed_password" name="http_hashed_password" value="${config['http_hashed_password']}" style="display: none;" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-range="[0, 1]" 
+                               data-parsley-errors-container="#http_hash_password_error" data-parsley-error-message="Cannot un-hash password, please set a new password." data-parsley-no-focus required>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="auth-settings" name="http_basic_auth" id="http_basic_auth" value="1" ${config['http_basic_auth']} data-parsley-trigger="change"> Use Basic Authentication
+                            </label>
+                            <p class="help-block">Use basic HTTP authentication instead of the HTML login form.</p>
+                        </div>
+
+
+                        <div class="padded-header">
+                            <h3>Guest Access</h3>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to PlexPy
+                            </label>
+                            <span id="allowGuestCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Allow shared users to login to PlexPy using their Plex.tv account. Individual user access needs to be enabled from Users > Edit Mode.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>API</h3>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="api_enabled" name="api_enabled" value="1" ${config['api_enabled']}> Enable API
+                            </label>
+                            <p class="help-block">Allow remote applications to interface with PlexPy.</p>
+                        </div>
+                        <div id="apioptions" class="form-group">
+                            <label for="api_key">API key</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="generate_api">Generate</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">Current API key: <strong> ${config['api_key']}</strong></p>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-5">
+
+                        <div class="padded-header">
+                            <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
+                        </div>
+                        <p class="help-block">If you're using websocket monitoring, any server changes require a restart of PlexPy.</p>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
+                            </label>
+                            <p class="help-block">Enable to have PlexPy check if updates are available for the Plex Media Server.</p>
+                        </div>
+                        <div id="pms_update_options">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <label for="pms_update_channel">Update Channel</label>
+                                        <select class="form-control" id="pms_update_channel" name="pms_update_channel">
+                                            <option value="public">Public</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="pms_update_distro_build">Release</label>
+                                        <select class="form-control" id="pms_update_distro_build" name="pms_update_distro_build">
+                                        </select>
+                                        <input type="hidden" class="form-control" id="pms_update_distro" name="pms_update_distro">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
+                            </label>
+                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down.</p>
+                        </div>
+
+                        <div class="form-group has-feedback" id="pms-ip-group">
+                            <label for="pms_ip">Plex IP or Hostname</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
+                                        </span>
+                                    </div>
+                                    <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none; right: 110px;"></span>
+                                </div>
+                                <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">IP Address or hostname for Plex Media Server.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="pms_port">Plex Port</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input data-parsley-type="integer" class="pms-settings form-control" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_port_error" required>
+                                </div>
+                                <div id="pms_port_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Port that Plex Media Server is listening on.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
+                            </label>
+                            <p class="help-block">Check this if your Plex Server is not on the same local network as PlexPy.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Use SSL
+                            </label>
+                            <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
+                        </div>
+
+                        <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
+                        <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
+
+                        <div class="padded-header">
+                            <h3>Plex Logs</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pms_logs_folder">Logs Folder</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error"  data-parsley-error-message="Shortcuts are not recognized.">
+                                </div>
+                                <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
+                            <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
+                        </div>
+
+                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
+
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-6">
+
+                        <div class="padded-header">
+                            <h3>Plex.tv Authentication</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="pms_token">PMS Token</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" data-parsley-errors-container="#pms_token_error" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" data-toggle="modal" data-target="#pms-auth-modal">Fetch Token</button>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div id="pms_token_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Token for Plex.tv authentication.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Friends List</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="refresh_users_interval">Users List Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_users_interval_error" required>
+                                </div>
+                                <div id="refresh_users_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) PlexPy will request an updated friends list from Plex.tv. Minimum 1, maximum 24, default 12.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh Users List on Startup
+                            </label>
+                            <p class="help-block">Refresh the users list when PlexPy starts.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Libraries List</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="refresh_libraries_interval">Libraries List Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_libraries_interval" name="refresh_libraries_interval" value="${config['refresh_libraries_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_libraries_interval_error" required>
+                                </div>
+                                <div id="refresh_libraries_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) PlexPy will request an updated libraries list from your Plex Media Server. Minimum 1, maximum 24, default 12.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="refresh_libraries_on_startup" name="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}> Refresh Libraries List on Startup
+                            </label>
+                            <p class="help-block">Refresh the libraries list when PlexPy starts.</p>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-7">
+                        <div class="padded-header">
+                            <h3>Extra Settings</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="pms_use_bif" name="pms_use_bif" value="1" ${config['pms_use_bif']}> Use Video Preview Thumbnails (BIF)
+                            </label>
+                            <p class="help-block">If you have media indexing enabled on your server, use these on the activity pane.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
+                            </label>
+                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
+                            </label>
+                            <p class="help-block">
+                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
+                            </p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
+                            </label>
+                            <p class="help-block">
+                                Enable to cache images from Plex to reduce API calls and improve loading times.<br />
+                                Note: Video preview thumbnails (BIF) are not cached.
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label for="anon_redirect">Anonymous Redirect</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Flush Temporary Sessions</label>
+                            <p class="help-block">
+                                Attempt to fix history logging by flushing out all of the temporary sessions in the database.<br />
+                                Warning: This will reset all currently active sessions. For emergency use only when history logging is stuck!
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="delete_temp_sessions">Flush</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Database Import Tool</h3>
+                        </div>
+                        <p class="help-block">Click a button below to import an exisiting database from another app.</p>
+                        <div class="btn-group">
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-8">
+
+                        <div class="padded-header">
+                            <h3>Monitoring Settings</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="monitoring_interval">Monitoring Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="monitoring_interval" name="monitoring_interval" value="${config['monitoring_interval']}" size="5" data-parsley-min="30" data-parsley-trigger="change" data-parsley-errors-container="#monitoring_interval_error" required>
+                                </div>
+                                <div id="monitoring_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Minimum 30 seconds, recommended 60 seconds.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
+                            </label>
+                            <p class="help-block">Instead of polling the server at regular intervals let the server tell PlexPy when something happens.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>History Logging</h3>
+                        </div>
+                        <p class="help-block">Keep records of all movie, TV show, or music items played from your Plex Media Server.</p>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="movie_logging_enable" name="movie_logging_enable" value="1" ${config['movie_logging_enable']}> Enable Movie Logging
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="tv_logging_enable" name="tv_logging_enable" value="1" ${config['tv_logging_enable']}> Enable TV Show Logging
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Enable Music Logging
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="logging_ignore_interval">Ignore Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#logging_ignore_interval_error" required>
+                                </div>
+                                <div id="logging_ignore_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="ip_logging_enable" name="ip_logging_enable" value="1" ${config['ip_logging_enable']}> Enable IP Logging
+                            </label>
+                            <span id="debugLogCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">
+                                Enable this to attempt to log the IP address of the user.
+                            </p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Buffer Warnings</h3>
+                        </div>
+                        <p class="help-block">Note: Buffer warnings only work on certain Plex clients. Android and PlexWeb do not report buffer events accurately or at all.</p>
+                        <div class="form-group">
+                            <label for="buffer_threshold">Buffer Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="buffer_threshold" name="buffer_threshold" value="${config['buffer_threshold']}" data-parsley-range="[0,50]" data-parsley-trigger="change" data-parsley-errors-container="#buffer_threshold_error" required>
+                                </div>
+                                <div id="buffer_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">How many buffer events should we wait before triggering the first warning. Buffer events increment on each monitor ping if play state is buffering. 0 to disable buffer warnings.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="buffer_wait">Buffer Wait</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="buffer_wait" name="buffer_wait" value="${config['buffer_wait']}" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#buffer_wait_error" required>
+                                </div>
+                                <div id="buffer_wait_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The value (in seconds) PlexPy should wait before triggering the next buffer warning. 0 to always trigger.</p>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-9">
+
+                        <div class="padded-header">
+                            <h3>Global Notification Settings</h3>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie Notifications
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1" ${config['tv_notify_enable']}> Enable TV Show Notifications
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable Music Notifications
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_recently_added" id="notify_recently_added" value="1" ${config['notify_recently_added']}> Enable Recently Added Notifications
+                            </label>
+                        </div>
+
+                        <div class="checkbox" style="padding-top: 15px;">
+                            <label>
+                                <input type="checkbox" name="notify_upload_posters" id="notify_upload_posters" value="1" ${config['notify_upload_posters']}> Enable Posters in Notifications
+                            </label>
+                            <p class="help-block">Enable to upload Plex posters to Imgur for notifications. Disable if posters are not being used to save bandwidth.</p>
+                        </div>
+                        <div id="imgur_upload_options">
+                            <div class="form-group">
+                                <label for="imgur_client_id">Imgur Client ID</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="imgur_client_id" name="imgur_client_id" value="${config['imgur_client_id']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">Enter your Imgur API client ID in order to upload posters. 
+                                    You can register a new application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br />
+                                    <span style="color: #eb8600;">Note: The shared Imgur client id will be removed in a future PlexPy update!
+                                        Please enter your own client id in to continue uploading posters!</span>
+                            </div>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Current Activity Notifications</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
+                            </label>
+                            <p class="help-block">Disable to prevent consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_concurrent_by_ip" id="notify_concurrent_by_ip" value="1" ${config['notify_concurrent_by_ip']}> User Concurrent Streams Notifications by IP Address
+                            </label>
+                            <p class="help-block">Enable to only get notified of concurrent streams by a single user from different IP addresses.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="notify_concurrent_threshold">User Concurrent Stream Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_concurrent_threshold" name="notify_concurrent_threshold" value="${config['notify_concurrent_threshold']}" data-parsley-min="2" data-parsley-trigger="change" data-parsley-errors-container="#notify_concurrent_threshold_error" required>
+                                </div>
+                                <div id="notify_concurrent_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The number of concurrent streams by a single user for PlexPy to trigger a notification. Minimum 2.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Recently Added Notifications</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_recently_added_grandparent" id="notify_recently_added_grandparent" value="1" ${config['notify_recently_added_grandparent']}> Group notifications for recently added TV Shows or Music
+                            </label>
+                            <p class="help-block">
+                                Enable to only get one TV Show or Artist notification for a batch of recently added Episodes or Tracks. Movies are unaffected.<br />
+                                % if config['notify_recently_added_grandparent'] == 'Checked':
+                                <span id="notify_recently_added_grandparent_note" style="color: #eb8600;">Note: No Season/Episode or Album/Track metadata will be available.</span>
+                                % else:
+                                <span id="notify_recently_added_grandparent_note">Note: No Season/Episode or Album/Track metadata will be available.</span>
+                                % endif
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label for="notify_recently_added_delay">Notification Delay</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_recently_added_delay" name="notify_recently_added_delay" value="${config['notify_recently_added_delay']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#notify_recently_added_delay_error" required>
+                                </div>
+                                <div id="notify_recently_added_delay_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the delay (in seconds) for recently added notifications to allow metadata to be processed. Minimum 60 seconds.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Custom Notification Messages</h3>
+                        </div>
+                        <p class="help-block">
+                            You can set custom formatted text for each type of notification.
+                            <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
+                        </p>
+                        <p class="help-block">
+                            You can also add tags to exclude certain text depending on the media type.
+                            <a href="#notify-text-tags-modal" data-toggle="modal">Click here</a> to view usage information.
+                        </p>
+                        <br/>
+                        <ul id="accordion-session" class="accordion list-unstyled">
+                            <li>
+                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Start<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_start_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_start_subject_text" name="notify_on_start_subject_text" value="${config['notify_on_start_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_start_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_start_body_text" name="notify_on_start_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_start_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-stop fa-fw"></i>&nbsp;Playback Stop<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_stop_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_stop_subject_text" name="notify_on_stop_subject_text" value="${config['notify_on_stop_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_stop_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_stop_body_text" name="notify_on_stop_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_stop_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-pause fa-fw"></i>&nbsp;Playback Pause<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_pause_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_pause_subject_text" name="notify_on_pause_subject_text" value="${config['notify_on_pause_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_pause_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_pause_body_text" name="notify_on_pause_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pause_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Resume<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_resume_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_resume_subject_text" name="notify_on_resume_subject_text" value="${config['notify_on_resume_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_resume_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_resume_body_text" name="notify_on_resume_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_resume_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-eye fa-fw"></i>&nbsp;Watched<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_watched_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_watched_subject_text" name="notify_on_watched_subject_text" value="${config['notify_on_watched_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_watched_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_watched_body_text" name="notify_on_watched_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_watched_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-spinner fa-fw"></i>&nbsp;Buffer Warnings<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_buffer_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_buffer_subject_text" name="notify_on_buffer_subject_text" value="${config['notify_on_buffer_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_buffer_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_buffer_body_text" name="notify_on_buffer_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_buffer_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-arrow-circle-o-right fa-fw"></i>&nbsp;User Concurrent Streams<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_concurrent_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_concurrent_subject_text" name="notify_on_concurrent_subject_text" value="${config['notify_on_concurrent_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_buffer_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_concurrent_body_text" name="notify_on_concurrent_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_concurrent_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-desktop fa-fw"></i>&nbsp;User New Device<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_newdevice_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_newdevice_subject_text" name="notify_on_newdevice_subject_text" value="${config['notify_on_newdevice_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_buffer_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_newdevice_body_text" name="notify_on_newdevice_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_newdevice_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <ul id="accordion-timeline" class="accordion list-unstyled">
+                            <li>
+                                <div class="link"><i class="fa fa-download fa-fw"></i>&nbsp;Recently Added<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_created_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_created_subject_text" name="notify_on_created_subject_text" value="${config['notify_on_created_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_created_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_created_body_text" name="notify_on_created_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_created_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Down<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_intdown_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_intdown_subject_text" name="notify_on_intdown_subject_text" value="${config['notify_on_intdown_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_intdown_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_intdown_body_text" name="notify_on_intdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intdown_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Back Up<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_intup_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_intup_subject_text" name="notify_on_intup_subject_text" value="${config['notify_on_intup_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_intup_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_intup_body_text" name="notify_on_intup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intup_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Down<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_extdown_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_extdown_subject_text" name="notify_on_extdown_subject_text" value="${config['notify_on_extdown_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_extdown_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_extdown_body_text" name="notify_on_extdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extdown_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Back Up<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_extup_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_extup_subject_text" name="notify_on_extup_subject_text" value="${config['notify_on_extup_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_extup_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_extup_body_text" name="notify_on_extup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extup_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-refresh fa-fw"></i>&nbsp;Plex Update Available<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_pmsupdate_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_pmsupdate_subject_text" name="notify_on_pmsupdate_subject_text" value="${config['notify_on_pmsupdate_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_extup_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_pmsupdate_body_text" name="notify_on_pmsupdate_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pmsupdate_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <ul id="accordion-scripts" class="accordion list-unstyled">
+                            <li>
+                                <div class="link"><i class="glyphicon glyphicon-console"></i>&nbsp;Script <i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_scripts_args_text">Script Arguments</label>
+                                            <input class="form-control" type="text" id="notify_scripts_args_text" name="notify_scripts_args_text" value="${config['notify_scripts_args_text']}" data-parsley-trigger="change">
+                                            <p class="help-block">Set custom arguments passed to the scripts.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-10">
+
+                        <div class="padded-header">
+                            <h3>Notification Agents</h3>
+                        </div>
+                        <p class="help-block">
+                            Toggle the desired notification options by clicking the <span class="help-bold">bell icon (<i class="fa fa-sm fa-bell"></i>)</span> and configure it by clicking the settings icon to the right.
+                        </p>
+                        <br/>
+                        <ul class="stacked-configs list-unstyled">
+                            % for agent in available_notification_agents:
+                            <li>
+                                <span>
+                                    % if any(k[:2] == 'on' and v == 1 for k, v in agent.iteritems()):
+                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
+                                    % else:
+                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
+                                    % endif
+                                    ${agent['name']}
+                                    % if agent['has_config']:
+                                    <a href="javascript:void(0)" rel="tooltip" data-target="#notification-config-modal" data-placement="top" title data-title="Open configuration" data-id="${agent['id']}" class="toggle-notification-config-modal toggle-right" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
+                                    % endif
+                                </span>
+                            </li>
+                            % endfor
+                        </ul>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="dateTimeOptionsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dateTimeOptionsModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <i class="fa fa-remove"></i>
+                    </button>
+                    <h4 class="modal-title">Date &amp; Time Format Options</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Year
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>YYYY</strong></td>
+                                <td>Numeric, four digits</td>
+                                <td>E.g. 1999, 2003</td>
+                            </tr>
+                            <tr>
+                                <td><strong>YY</strong></td>
+                                <td>Numeric, two digits</td>
+                                <td>E.g. 99, 03</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Month
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>MMMM</strong></td>
+                                <td>Textual, full</td>
+                                <td>January-December</td>
+                            </tr>
+                            <tr>
+                                <td><strong>MMM</strong></td>
+                                <td>Textual, three letters</td>
+                                <td>Jan-Dec</td>
+                            </tr>
+                            <tr>
+                                <td><strong>MM</strong></td>
+                                <td>Numeric, with leading zeros</td>
+                                <td>01-12</td>
+                            </tr>
+                            <tr>
+                                <td><strong>M</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>1-12</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Day of the Year
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>DDDD</strong></td>
+                                <td>Numeric, with leading zeros</td>
+                                <td>001-365</td>
+                            </tr>
+                            <tr>
+                                <td><strong>DDD</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>1-365</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Day of the Month
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>DD</strong></td>
+                                <td>Numeric, with leading zeros</td>
+                                <td>01-31</td>
+                            </tr>
+                            <tr>
+                                <td><strong>D</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>1-31</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Do</strong></td>
+                                <td>Numeric, with suffix</td>
+                                <td>E.g. 1st, 2nd ... 31st.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Day of the Week
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>dddd</strong></td>
+                                <td>Textual, full</td>
+                                <td>Sunday-Saturday</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ddd</strong></td>
+                                <td>Textual, three letters</td>
+                                <td>Sun-Sat</td>
+                            </tr>
+                            <tr>
+                                <td><strong>d</strong></td>
+                                <td>Numeric</td>
+                                <td>0-6</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Hour
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>HH</strong></td>
+                                <td>24-hour, with leading zeros</td>
+                                <td>00-23</td>
+                            </tr>
+                            <tr>
+                                <td><strong>H</strong></td>
+                                <td>24-hour, without leading zeros</td>
+                                <td>0-23</td>
+                            </tr>
+                            <tr>
+                                <td><strong>hh</strong></td>
+                                <td>12-hour, with leading zeros</td>
+                                <td>01-12</td>
+                            </tr>
+                            <tr>
+                                <td><strong>h</strong></td>
+                                <td>12-hour, without leading zeros</td>
+                                <td>1-12</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Minute
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>mm</strong></td>
+                                <td>Numeric, with leading zeros</td>
+                                <td>00-59</td>
+                            </tr>
+                            <tr>
+                                <td><strong>m</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>0-59</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Second
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>ss</strong></td>
+                                <td>Numeric, with leading zeros</td>
+                                <td>00-59</td>
+                            </tr>
+                            <tr>
+                                <td><strong>s</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>0-59</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    AM / PM
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>A</strong></td>
+                                <td>AM/PM uppercase</td>
+                                <td>AM, PM</td>
+                            </tr>
+                            <tr>
+                                <td><strong>a</strong></td>
+                                <td width="300">am/pm lowercase</td>
+                                <td>am, pm</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Timezone
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>ZZ</strong></td>
+                                <td>UTC offset</td>
+                                <td>E.g. +0100, -0700</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Z</strong></td>
+                                <td>UTC offset</td>
+                                <td>E.g. +01:00, -07:00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th colspan="3">
+                                    Timestamp
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>X</strong></td>
+                                <td>Unix timestamp</td>
+                                <td>E.g. 1456887825</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+    <div id="pms-auth-modal" class="modal fade" tabindex="-1" role="dialog"
+         aria-labelledby="ip-info-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Fetch Plex.tv Token</h4>
+                </div>
+                <div class="modal-body" id="modal-text">
+                    <div>
+                        <p class="help-block">
+                            This will attempt to fetch a new Plex.tv token for you. PlexPy does not store your username and password.
+                            Note: This will not work on Internet Explorer 9 or lower.
+                        </p>
+                        <div class="form-group">
+                            <label for="pms_username">Plex.tv Username</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="pms_username" name="pms_username" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Username for Plex.tv authentication.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="pms_password">Plex.tv Password</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="password" class="form-control" id="pms_password" name="pms_password" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Password for Plex.tv authentication.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="float: left;">
+                        <strong><span id="pms-token-status"></span></strong>
+                    </div>
+                    <input type="button" id="get-pms-auth-token" class="btn btn-bright" value="Fetch Token">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="app-import-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="app-import-modal"></div>
+    <div id="notification-config-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notification-config-modal"></div>
+    <div id="notification-triggers-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notification-triggers-modal"></div>
+    <div id="notify-text-sub-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-sub-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
+                            class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Notification Parameters</h4>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <p class="help-block">
+                            If the value for a selected parameter cannot be provided, it will display as blank.
+                        </p>
+                        <table class="notification-params">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">
+                                        Global
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{server_name}</strong></td>
+                                    <td>The name of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{server_uptime}</strong></td>
+                                    <td>The uptime (in days, hours, mins, secs) of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{server_version}</strong></td>
+                                    <td>The current version of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{action}</strong></td>
+                                    <td>The action that triggered the notification.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{datestamp}</strong></td>
+                                    <td>The date (in date format) the notification was triggered.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{timestamp}</strong></td>
+                                    <td>The time (in time format) the notification was triggered.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="notification-params">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">
+                                        Stream Details
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{streams}</strong></td>
+                                    <td>The number of concurrent streams.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{user_streams}</strong></td>
+                                    <td>The number of concurrent streams by the person streaming.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{user}</strong></td>
+                                    <td>The friendly name of the person streaming.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{username}</strong></td>
+                                    <td>The username of the person streaming.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{platform}</strong></td>
+                                    <td>The type of client being used for playback.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{player}</strong></td>
+                                    <td>The name of the device being used for playback.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{ip_address}</strong></td>
+                                    <td>The IP address of the device being used for playback. <span class="small-muted">(PMS 0.9.14 and above)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{stream_duration}</strong></td>
+                                    <td>The stream duration (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{stream_time}</strong></td>
+                                    <td>The stream duration (in time format) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{remaining_duration}</strong></td>
+                                    <td>The remaining duration (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{remaining_time}</strong></td>
+                                    <td>The remaining duration (in time format) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{progress_duration}</strong></td>
+                                    <td>The last reported offset (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{progress_time}</strong></td>
+                                    <td>The last reported offset (in time format) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{progress_percent}</strong></td>
+                                    <td>The last reported progress percent for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{container}</strong></td>
+                                    <td>The media container of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_codec}</strong></td>
+                                    <td>The video codec of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_bitrate}</strong></td>
+                                    <td>The video bitrate of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_width}</strong></td>
+                                    <td>The video width of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_height}</strong></td>
+                                    <td>The video height of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_resolution}</strong></td>
+                                    <td>The video resolution of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_framerate}</strong></td>
+                                    <td>The video framerate of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{aspect_ratio}</strong></td>
+                                    <td>The aspect ratio of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{audio_codec}</strong></td>
+                                    <td>The audio codec of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{audio_channels}</strong></td>
+                                    <td>The audio channels of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_decision}</strong></td>
+                                    <td>The stream transcode decisions for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_decision}</strong></td>
+                                    <td>The video transcode decisions for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{audio_decision}</strong></td>
+                                    <td>The audio transcode decisions for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_container}</strong></td>
+                                    <td>The media container of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_video_codec}</strong></td>
+                                    <td>The video codec of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_video_width}</strong></td>
+                                    <td>The video width of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_video_height}</strong></td>
+                                    <td>The video height of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_audio_codec}</strong></td>
+                                    <td>The audio codec of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_audio_channels}</strong></td>
+                                    <td>The audio channels of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{session_key}</strong></td>
+                                    <td>The unique identifier for the stream session.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_key}</strong></td>
+                                    <td>The unique identifier for the transcode session.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{user_id}</strong></td>
+                                    <td>The unique identifier for the user.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{machine_id}</strong></td>
+                                    <td>The unique identifier for the player.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="notification-params">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">
+                                        Metadata Details
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{media_type}</strong></td>
+                                    <td>The type of media. <span class="small-muted">(movie, episode, track)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{title}</strong></td>
+                                    <td>The full title of the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{library_name}</strong></td>
+                                    <td>The library title of the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{show_name}</strong></td>
+                                    <td>The title of the TV series.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{episode_name}</strong></td>
+                                    <td>The title of the episode.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{artist_name}</strong></td>
+                                    <td>The name of the artist.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{album_name}</strong></td>
+                                    <td>The title of the album.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{track_name}</strong></td>
+                                    <td>The title of the track.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{season_num}</strong></td>
+                                    <td>The season number for the episode.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{season_num00}</strong></td>
+                                    <td>The two digit season number.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{episode_num}</strong></td>
+                                    <td>The episode number for the episode.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{episode_num00}</strong></td>
+                                    <td>The two digit episode number.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{track_num}</strong></td>
+                                    <td>The track number for the track.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{track_num00}</strong></td>
+                                    <td>The two digit track number.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{year}</strong></td>
+                                    <td>The release year for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{release_date}</strong></td>
+                                    <td>The release date (in date format) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{air_date}</strong></td>
+                                    <td>The air date (in date format) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{added_date}</strong></td>
+                                    <td>The date (in date format) the item was added to Plex.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{updated_date}</strong></td>
+                                    <td>The date (in date format) the item was updated on Plex.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{last_viewed_date}</strong></td>
+                                    <td>The date (in date format) the item was last viewed on Plex.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{studio}</strong></td>
+                                    <td>The studio for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{content_rating}</strong></td>
+                                    <td>The content rating for the item. <span class="small-muted">(e.g. TV-MA, TV-PG, etc.)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{directors}</strong></td>
+                                    <td>A list of directors for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{writers}</strong></td>
+                                    <td>A list of writers for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{actors}</strong></td>
+                                    <td>A list of actors for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{genres}</strong></td>
+                                    <td>A list of genres for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{summary}</strong></td>
+                                    <td>A short plot summary for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{tagline}</strong></td>
+                                    <td>A tagline for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{rating}</strong></td>
+                                    <td>The rating (out of 10) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{duration}</strong></td>
+                                    <td>The duration (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{poster_url}</strong></td>
+                                    <td>A URL for the movie, TV show, or album poster.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{plex_url}</strong></td>
+                                    <td>The Plex URL to your server for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{imdb_id}</strong></td>
+                                    <td>The IMDB ID for the movie. <span class="small-muted">(e.g. tt2488496)</span>
+                                    <p class="small-muted">(PMS agent must be Plex Movie)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{imdb_url}</strong></td>
+                                    <td>The IMDB URL for the movie.
+                                    <p class="small-muted">(PMS agent must be Plex Movie)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{thetvdb_id}</strong></td>
+                                    <td>The TVDB ID for the TV show. <span class="small-muted">(e.g. 121361)</span>
+                                    <p class="small-muted">(PMS agent must be TheTVDB)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{thetvdb_url}</strong></td>
+                                    <td>The TVDB URL for the TV show.
+                                    <p class="small-muted">(PMS agent must be TheTVDB)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{themoviedb_id}</strong></td>
+                                    <td>The TMDb ID for the movie or TV show. <span class="small-muted">(e.g. 15260)</span>
+                                    <p class="small-muted">(PMS agent must be The Movie Database)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{themoviedb_url}</strong></td>
+                                    <td>The TMDb URL for the movie or TV show.
+                                    <p class="small-muted">(PMS agent must be The Movie Database)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{lastfm_url}</strong></td>
+                                    <td>The Last.fm URL for the album.
+                                    <p class="small-muted">(PMS agent must be Last.fm)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{trakt_url}</strong></td>
+                                    <td>The trakt.tv URL for the movie or TV show.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{section_id}</strong></td>
+                                    <td>The unique identifier for the library.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{rating_key}</strong></td>
+                                    <td>The unique identifier for the movie, episode, or track.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{parent_rating_key}</strong></td>
+                                    <td>The unique identifier for the season or album.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{grandparent_rating_key}</strong></td>
+                                    <td>The unique identifier for the TV show or artist.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="notification-params">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">
+                                        Plex Update Available
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{update_version}</strong></td>
+                                    <td>The available update version for your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_url}</strong></td>
+                                    <td>The available update download URL.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_release_date}</strong></td>
+                                    <td>The release date of the update version.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_channel}</strong></td>
+                                    <td>The update channel. <span class="small-muted">(Public or Plex Pass)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_platform}</strong></td>
+                                    <td>The platform of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_distro}</strong></td>
+                                    <td>The distro of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_distro_build}</strong></td>
+                                    <td>The distro build of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_requirements}</strong></td>
+                                    <td>The requirements for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_extra_info}</strong></td>
+                                    <td>Any extra info for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_changelog_added}</strong></td>
+                                    <td>The added changelog for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_changelog_fixed}</strong></td>
+                                    <td>The fixed changelog for the available update.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+    <div id="notify-text-tags-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-tags-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Notification Exclusion Tags</h4>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <div>
+                            <h4>Movie Tag</h4>
+                        </div>
+                        <div style="padding-bottom: 10px;">
+                            <p class="help-block">All text inside <span class="inline-pre">&lt;movie&gt;&lt;/movie&gt;</span> tags will only be sent when the media item is a movie.</p>
+                            <p><strong style="color: #fff;">Example:</strong></p>
+                            <pre>{user} has started playing {title} &lt;movie&gt;({year})&lt;/movie&gt;</pre>
+                        </div>
+                        <div>
+                            <h4>TV Tag</h4>
+                        </div>
+                        <div style="padding-bottom: 10px;">
+                            <p class="help-block">All text inside <span class="inline-pre">&lt;tv&gt;&lt;/tv&gt;</span> tags will only be sent when the media item is an episode.</p>
+                            <p><strong style="color: #fff;">Example:</strong></p>
+                            <pre>{user} has started playing {title} &lt;tv&gt;(S{season_num}E{episode_num})&lt;/tv&gt;</pre>
+                        </div>
+                        <div>
+                            <h4>Music Tag</h4>
+                        </div>
+                        <div>
+                            <p class="help-block">All text inside <span class="inline-pre">&lt;music&gt;&lt;/music&gt;</span> tags will only be sent when the media item is a track.</p>
+                            <p><strong style="color: #fff;">Example:</strong></p>
+                            <pre>{user} has started playing {title} &lt;music&gt;(Track {track_num})&lt;/music&gt;</pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="changelog-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Changelog</h4>
+                </div>
+                <div class="modal-body">
+                    ${versioncheck.read_changelog() | n}
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="restart-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="restart-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Restart</h4>
+                </div>
+                <div class="modal-body">
+                    You have changed settings that require PlexPy to restart. Hit the restart button below to restart now.
+                </div>
+                <div class="modal-footer">
+                    <button id="modal_link_restart" class="btn btn-bright"><i class="fa fa-refresh"></i> Restart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</%def>
+
+<%def name="javascriptIncludes()">
+<script src="${http_root}js/parsley.min.js"></script>
+<script src="${http_root}js/Sortable.min.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script>
+    function getConfigurationTable() {
+        $.ajax({
+            url: 'get_configuration_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-configuration-table").html(xhr.responseText);
+                if ("${kwargs.get('install_geoip')}" == 'true') {
+                    $('#install_geoip_db').removeClass('no-highlight').css('color','#e9a049');
+                } else if ("${kwargs.get('reinstall_geoip')}" == 'true') {
+                    $('#reinstall_geoip_db').removeClass('no-highlight').css('color','#e9a049');
+                }
+                if ("${kwargs.get('support')}" == 'true') {
+                    $('.support-modal-link').removeClass('no-highlight').css('color','#e9a049');
+                    $('#best-support-link').prepend('<span data-toggle="tooltip" title="Most Active"><i class="fa fa-star"></i></span>&nbsp;')
+                    $('#best-support-link span').tooltip({ container: 'body' });
+                }
+            }
+        });
+    }
+
+    function getSchedulerTable() {
+        $.ajax({
+            url: 'get_scheduler_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-scheduler-table").html(xhr.responseText);
+            }
+        });
+    }
+
+$(document).ready(function() {
+
+    // Javascript to enable link to tab
+    var hash = document.location.hash;
+    var prefix = "tab_";
+    if (hash) {
+        $('.nav-settings a[href='+hash.replace(prefix,"")+']').tab('show');
+    }
+
+    // Change hash for page-reload
+    $('.nav-settings a').on('shown.bs.tab', function (e) {
+        window.location.hash = e.target.hash.replace("#", "#" + prefix);
+    });
+
+    // Global Variables
+    settingsChanged = false;
+    serverChanged = false;
+    authChanged = false;
+    httpChanged = false;
+    monitorChanged = false;
+    directoryChanged = false;
+
+    // Alert if leaving the page without saving changes to settings
+    window.onbeforeunload = confirmExit;
+    function confirmExit() {
+        if (settingsChanged) {
+            return "Settings were changed without saving!";
+        }
+    }
+
+    // Alert the user that their changes require a restart.
+    function postSaveChecks() {
+        if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged || directoryChanged) {
+          $('#restart-modal').modal('show');
+        }
+        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
+        getConfigurationTable();
+        getSchedulerTable();
+        loadUpdateDistros();
+        settingsChanged = false;
+    }
+
+    var configForm = $("#configUpdate");
+    configForm.change(function () {
+        settingsChanged = true;
+    });
+
+    function saveSettings() {
+        if (configForm.parsley().validate()) {
+            doAjaxCall('configUpdate', $(this), 'tabs', true, true, postSaveChecks);
+            return false;
+        } else {
+            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
+        }
+    }
+
+    $('.save-button').click(function() {
+        if ($("#pms_identifier").val() == "") {
+            verifyServer(function () { saveSettings() });
+        } else {
+            saveSettings();
+        }
+    });
+
+    initConfigCheckbox('#api_enabled');
+    initConfigCheckbox('#enable_https');
+    initConfigCheckbox('#https_create_cert');
+    initConfigCheckbox('#check_github');
+    initConfigCheckbox('#notify_upload_posters');
+    initConfigCheckbox('#monitor_pms_updates');
+    
+    $("#menu_link_shutdown").click(function() {
+        $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            window.location.href = "shutdown";
+        });
+    });
+
+    $("#menu_link_restart").click(function() {
+        $("#confirm-message").text("Are you sure you want to restart PlexPy?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            window.location.href = "restart";
+        });
+    });
+
+    $("#menu_link_update_check").click(function() {
+        // Allow the update bar to show again if previously dismissed.
+        setCookie('updateDismiss', 'true', 0);
+        $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking');
+        $(this).prop('disabled', true);
+        window.location.href = "checkGithub";
+    });
+
+    $("#modal_link_restart").click(function() {
+        window.location.href = "restart";
+    });
+
+    getConfigurationTable();
+    getSchedulerTable();
+
+    $("#backup_config").click(function () {
+        var msg = 'Are you sure you want to create a backup of the PlexPy config?';
+        var url = 'backup_config';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#backup_database").click(function () {
+        var msg = 'Are you sure you want to create a backup of the PlexPy database?';
+        var url = 'backup_db';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_cache").click(function () {
+        var msg = 'Are you sure you want to clear the PlexPy cache?';
+        var url = 'delete_cache';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_image_cache").click(function () {
+        var msg = 'Are you sure you want to clear the PlexPy image cache?';
+        var url = 'delete_image_cache';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_logs").click(function () {
+        var msg = 'Are you sure you want to clear the PlexPy logs?';
+        var url = 'delete_logs';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#delete_temp_sessions").click(function () {
+        var msg = 'Are you sure you want to flush the temporary sessions?<br /><strong>This will reset all currently active sessions.</strong>';
+        var url = 'delete_temp_sessions';
+        confirmAjaxCall(url, msg);
+    });
+
+    $('#api_key').click(function(){ $('#api_key').select() });
+    $("#generate_api").click(function() {
+        $.get('generateAPI',
+            function(data){
+                if (data.error != undefined) {
+                    alert(data.error);
+                    return;
+                }
+                $('#api_key').val(data);
+        });
+    });
+
+    $( ".http-settings" ).change(function() {
+        httpChanged = true;
+    });
+
+    $( ".auth-settings" ).change(function() {
+        authChanged = true;
+    });
+
+    $( ".monitor-settings" ).change(function() {
+        monitorChanged = true;
+    });
+
+    $( ".directory-settings" ).change(function() {
+        directoryChanged = true;
+    });
+
+    $( ".pms-settings" ).change(function() {
+        serverChanged = true;
+        $("#pms_identifier").val("");
+        $("#server_changed").prop('checked', true);
+        verifyServer();
+    });
+
+    function verifyServer(_callback) {
+        var pms_ip = $("#pms_ip").val();
+        var pms_port = $("#pms_port").val();
+        var pms_identifier = $("#pms_identifier").val();
+        var pms_ssl = $("#pms_ssl").is(':checked') ? 1 : 0;
+        var pms_is_remote = $("#pms_is_remote").is(':checked') ? 1 : 0;
+        if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
+            $("#pms-verify").html('<i class="fa fa-refresh fa-spin"></i>');
+            $('#pms-verify').fadeIn('fast');
+            $.ajax({
+                url: 'get_server_id',
+                data : { hostname: pms_ip, port: pms_port, identifier: pms_identifier, ssl: pms_ssl, remote: pms_is_remote },
+                cache: true,
+                async: true,
+                timeout: 10000,
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $("#pms-verify").html('<i class="fa fa-close"></i>');
+                    $('#pms-verify').fadeIn('fast');
+                    $("#pms-ip-group").addClass("has-error");
+                },
+                success: function (json) {
+                    var machine_identifier = json;
+                    if (machine_identifier) {
+                        $("#pms_identifier").val(machine_identifier);
+                        $("#pms-verify").html('<i class="fa fa-check"></i>');
+                        $('#pms-verify').fadeIn('fast');
+                        $("#pms-ip-group").removeClass("has-error");
+
+                        if (_callback) {
+                            _callback();
+                        }
+                    } else {
+                        $("#pms-verify").html('<i class="fa fa-close"></i>');
+                        $('#pms-verify').fadeIn('fast');
+                        $("#pms-ip-group").addClass("has-error");
+                        showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
+                    }
+                }
+            });
+        } else {
+            $("#pms-verify").html('<i class="fa fa-close"></i>');
+            $('#pms-verify').fadeIn('fast');
+            $("#pms-ip-group").addClass("has-error");
+            showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
+        }
+    }
+
+    $('#verify_server_button').on('click', function(){
+        $("#pms_identifier").val("");
+        verifyServer();
+    });
+
+    // Plex.tv auth token fetch
+    $("#get-pms-auth-token").click(function() {
+        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
+        var pms_username = $("#pms_username").val().trim();
+        var pms_password = $("#pms_password").val().trim();
+        if ((pms_username !== '') && (pms_password !== '')) {
+            $.ajax({
+                type: 'GET',
+                url: 'get_plexpy_pms_token',
+                data: {
+                    username: pms_username,
+                    password: pms_password,
+                    force: true
+                },
+                cache: false,
+                async: true,
+                complete: function(xhr, status) {
+                    var result = $.parseJSON(xhr.responseText);
+                    var msg = result.message;
+                    if (result.result == 'success') {
+                        var authToken = result.token;
+                        $("#pms-token-status").html('<i class="fa fa-check"></i> ' + msg);
+                        $("#pms_token").val(authToken);
+                        $('#pms-auth-modal').modal('hide');
+                    } else {
+                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> ' + msg);
+                    }
+                    loadUpdateDistros();
+                }
+            });
+        } else {
+            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Username and password required.');
+        }
+    });
+
+    // Load database import modal
+    $(".toggle-app-import-modal").click(function() {
+        $.ajax({
+            url: 'import_database_tool',
+            data: { app: $(this).data('app') },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#app-import-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    // Load notification agent config modal
+    $(".toggle-notification-config-modal").click(function() {
+        var agent_id = $(this).data('id');
+        $.ajax({
+            url: 'get_notification_agent_config',
+            data: { agent_id: agent_id },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#notification-config-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    // Load notification triggers config modal
+    $(".toggle-notification-triggers-modal").click(function() {
+        var agent_id = $(this).data('id');
+        $.ajax({
+            url: 'get_notification_agent_triggers',
+            data: { agent_id: agent_id },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#notification-triggers-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    $('#osxnotifyregister').click(function () {
+        var osx_notify_app = $("#osx_notify_reg").val();
+        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='fa fa-check'></span>" + data + "</div>", false, true, 3000); });
+    })
+
+    pms_version = false;
+    pms_logs_debug = false;
+    pms_logs = false;
+
+    // Checks to see if PMS server version is >= 0.9.14 with automaatically logged IP addresses
+    var version = parseInt($.map("${config['pms_version']}".split('-')[0].split('.').slice(0,4), function(v) { return ('0000'+v).substring(v.length); }).join(""));
+    if (version > 900140000) {
+        $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
+        $("#ip_logging_enable").attr("disabled", true);
+        $("#ip_logging_enable").attr("checked", true);
+        pms_version = true;
+        checkLogsPath();
+    } else {
+        // Check to see if debug logs are enabled on the PMS.
+        $.ajax({
+            url: 'get_server_pref',
+            data: { pref: 'logDebug' },
+            async: true,
+            success: function(data) {
+                pms_logs_debug = (data == 'true' ? true : false);
+                // Check to see if our logs folder is set before allowing IP logging to be enabled.
+                checkLogsPath();
+            }
+        });
+    }
+
+    $("#pms_logs_folder").change(function() {
+        checkLogsPath();
+    });
+
+    function checkLogsPath() {
+        pms_logs = ($("#pms_logs_folder").val() == '' ? false : true);
+        // Toggle IP logging checkbox depending on debug logs, and logs path
+        if (!(pms_version)) {
+            if (pms_logs_debug && pms_logs) {
+                $("#ip_logging_enable").attr("disabled", false);
+                $("#debugLogCheck").html("");
+            } else if (!(pms_logs_debug)) {
+                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
+                $("#ip_logging_enable").attr("disabled", true);
+                $("#ip_logging_enable").attr("checked", false);
+            } else {
+                $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
+                $("#ip_logging_enable").attr("disabled", true);
+                $("#ip_logging_enable").attr("checked", false);
+            }
+        }
+    }
+
+    $.ajax({
+        url: 'get_server_pref',
+        data: { pref: 'PublishServerOnPlexOnlineKey' },
+        async: true,
+        success: function(data) {
+            if (data !== 'true') {
+                $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
+                $("#monitor_remote_access").attr("disabled", true);
+                $("#monitor_remote_access").attr("checked", false);
+            }
+        }
+    });
+
+    var accordion_session = new Accordion($('#accordion-session'), false);
+    var accordion_timeline = new Accordion($('#accordion-timeline'), false);
+    var accordion_scripts = new Accordion($('#accordion-scripts'), false);
+
+    // Sortable home_sections
+    function set_home_sections() {
+        var home_sections = [];
+        var hsecs = $('[id^=hsec-]').serializeArray();
+        $.each(hsecs, function(i, sec) {
+            home_sections.push(sec.value);
+        });
+        $('#home_sections').val(home_sections);
+    };
+
+    var sec_cards = ${config['home_sections'] | n};
+    sec_cards.reverse().forEach(function (item) {
+        $('#hsec-' + item).prop('checked', !$(this).prop('checked'))
+        $('#hsec-' + item).closest('li.card').prependTo('#sortable_home_sections');
+    });
+
+    Sortable.create(sortable_home_sections, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_sections();
+        }
+    });
+
+    $('[id^=hsec-]').change(function() { set_home_sections(); });
+    set_home_sections()
+
+    // Sortable home_stats_cards
+    function set_home_stats_cards() {
+        var home_stats_cards = [];
+        var hscards = $('[id^=hscard-]').serializeArray();
+        $.each(hscards, function(i, card) {
+            home_stats_cards.push(card.value);
+        });
+        $('#home_stats_cards').val(home_stats_cards);
+    };
+
+    var config_cards = ${config['home_stats_cards'] | n};
+    config_cards.reverse().forEach(function (item) {
+        $('#hscard-' + item).prop('checked', !$(this).prop('checked'))
+        $('#hscard-' + item).closest('li.card').prependTo('#sortable_home_stats_cards');
+    });
+
+    Sortable.create(sortable_home_stats_cards, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_stats_cards();
+        }
+    });
+
+    $('[id^=hscard-]').change(function() { set_home_stats_cards(); });
+    set_home_stats_cards()
+
+    // Sortable home_library_cards
+    function set_home_library_cards() {
+        var home_library_cards = [];
+        var hlcards = $('[id^=hlcard-]').serializeArray();
+        $.each(hlcards, function(i, card) {
+            home_library_cards.push(card.value);
+        });
+        $('#home_library_cards').val(home_library_cards);
+    };
+
+    $.ajax({
+        url: 'get_library_sections',
+        data: { },
+        async: true,
+        complete: function (data) {
+            libraries_list = $.parseJSON(data.responseText);
+            for (var i in libraries_list) {
+                var title = libraries_list[i].section_name;
+                var key = libraries_list[i].section_id;
+                $('#sortable_home_library_cards').append(
+                    '<li class="card card-sortable">' + 
+                        '<div class="card-handle"><i class="fa fa-bars"></i></div>' + 
+                        '<label>' + 
+                            '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + title + 
+                        '</label>' + 
+                    '</li>'
+                );
+            }
+            var config_cards = ${config['home_library_cards'] | n};
+            config_cards.reverse().forEach(function (item) {
+                $('#hlcard-' + item).prop('checked', !$(this).prop('checked'));
+                $('#hlcard-' + item).closest('li.card').prependTo('#sortable_home_library_cards');
+            });
+            $('[id^=hlcard-]').change(function() { set_home_library_cards(); });
+            set_home_library_cards()
+        }
+    });
+
+    Sortable.create(sortable_home_library_cards, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_library_cards();
+        }
+    });
+
+
+    // auto resizing textarea for custom notification message body
+    $('textarea[data-autoresize]').each(function() {
+        var offset = this.offsetHeight - this.clientHeight;
+        var resizeTextarea = function(el) {
+            $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
+        };
+        $(this).on('focus keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
+    });
+
+    $("#notify_recently_added_grandparent").change(function () {
+        var c = this.checked ? '#eb8600' : '#737373';
+        $('#notify_recently_added_grandparent_note').css('color', c);
+    });
+
+    function allowGuestAccessCheck () {
+        if ($("#http_basic_auth").is(":checked")) {
+            $("#allow_guest_access").attr("disabled", true);
+            $("#allow_guest_access").attr("checked", false);
+            $("#allowGuestCheck").html("Guest access cannot be enabled with basic authentication.");
+        } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
+            $("#allow_guest_access").attr("disabled", true);
+            $("#allow_guest_access").attr("checked", false);
+            $("#allowGuestCheck").html("You must set an admin password above to allow guest access.");
+        } else {
+            $("#allow_guest_access").attr("disabled", false);
+            $("#allowGuestCheck").html("");
+        }
+    }
+    allowGuestAccessCheck();
+
+    $('#http_username, #http_password, #http_basic_auth').change(function () {
+        allowGuestAccessCheck();
+    });
+
+    function hashPasswordCheck () {
+        if ($("#http_basic_auth").is(":checked")) {
+            $("#http_hash_password").attr("checked", false);
+            $("#http_hash_password").attr("disabled", true);
+            $("#hashPasswordCheck").html("Password cannot be hashed with basic authentication.");
+        } else {
+            $("#http_hash_password").attr("disabled", false);
+            $("#hashPasswordCheck").html("");
+        }
+        if (!($("#http_hash_password").is(":checked")) && $("#http_hashed_password").val() == "1" && $("#http_password").val() == "    ") {
+            $("#http_hashed_password").val(-1);
+        } else if ($("#http_hash_password").is(":checked") && $("#http_hashed_password").val() == "-1" && $("#http_password").val() == "    ") {
+            $("#http_hashed_password").val(1);
+            $("#http_hash_password_error").html("");
+        }
+    }
+    hashPasswordCheck();
+
+    $('#http_password, #http_hash_password, #http_basic_auth').change(function () {
+        hashPasswordCheck();
+    });
+
+    $('#http_password').change(function () {
+        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
+        $("#http_hash_password_error").html("");
+    });
+
+    // Load PMS downloads
+    function loadUpdateDistros() {
+        var update_params_ajax = $.getJSON('get_server_update_params', function (data) { return data; });
+
+        $.when(update_params_ajax).done(function() {
+            var update_params = update_params_ajax.responseJSON;
+
+            var plexpass = update_params.plexpass;
+            var platform = update_params.pms_platform;
+            var update_channel = update_params.pms_update_channel;
+            var update_distro = update_params.pms_update_distro;
+            var update_distro_build = update_params.pms_update_distro_build;
+
+            $("#pms_update_channel option[value='plexpass']").remove();
+            if (plexpass) {
+                var selected = (update_channel == 'plexpass') ? true : false;
+                $('#pms_update_channel')
+                    .append($('<option></option>')
+                    .text('Plex Pass')
+                    .val('plexpass')
+                    .prop('selected', selected));
+            }
+
+            $.getJSON('https://plex.tv/api/downloads/1.json?channel=' + update_channel, function (downloads) {
+                platform_downloads = downloads.computer[platform] || downloads.nas[platform];
+                if (platform_downloads) {
+                    $("#pms_update_distro_build option").remove();
+                    $.each(platform_downloads.releases, function (index, item) {
+                        var label = (platform_downloads.releases.length == 1) ? platform_downloads.name : platform_downloads.name + ' - ' + item.label;
+                        var selected = (item.distro == update_distro && item.build == update_distro_build) ? true : false;
+                        $('#pms_update_distro_build')
+                            .append($('<option></option>')
+                            .text(label)
+                            .val(item.build)
+                            .attr('data-distro', item.distro)
+                            .prop('selected', selected));
+                    })
+                    $('#pms_update_distro').val($("#pms_update_distro_build option:selected").data('distro'))
+                }
+            });
+        });
+    }
+    loadUpdateDistros();
+
+
+    $('#pms_update_distro_build').change(function () {
+        var distro = $("option:selected", this).data('distro')
+        $('#pms_update_distro').val(distro)
+    });
+});
+</script>
+</%def>

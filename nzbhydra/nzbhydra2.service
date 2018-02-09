@@ -1,0 +1,16 @@
+[Unit]
+Description=NZBHydra Daemon
+After=network.target
+
+[Service]
+User=root
+Group=media
+Type=simple
+
+WorkingDirectory=/opt/nzbhydra/nzbhydra2
+
+ExecStart=/opt/nzbhydra/nzbhydra2/nzbhydra2 --nobrowser
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

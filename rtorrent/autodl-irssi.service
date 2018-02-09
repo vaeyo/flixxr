@@ -1,0 +1,13 @@
+[Unit]
+Description=Autodl-Irssi w/ Screen
+After=network.target
+
+[Service]
+Type=forking
+User=rtorrent
+Group=media
+ExecStart=/usr/bin/screen -S autodl -fa -d -m irssi
+ExecStop=/usr/bin/screen -S autodl -X quit
+
+[Install]
+WantedBy=multi-user.target

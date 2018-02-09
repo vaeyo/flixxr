@@ -1,0 +1,150 @@
+---
+  site: thepiratebay
+  name: The Pirate Bay
+  description: "Pirate Bay (TPB) is the galaxy’s most resilient Public BitTorrent site"
+  language: en-us
+  type: public
+  encoding: UTF-8
+  links:
+    - https://thepiratebay.org/
+  legacylinks:
+    - https://thepiratesbay.pw/
+    - https://tproxy.pro/
+
+  caps:
+    categorymappings:
+      #Audio
+      - {id: 101, cat: Audio, desc: "Music"}
+      - {id: 102, cat: Audio/Audiobook, desc: "Audio books"}
+      - {id: 103, cat: Audio, desc: "Sound clips"}
+      - {id: 104, cat: Audio/Lossless, desc: "FLAC"}
+      - {id: 199, cat: Audio/Other, desc: "Audio Other"}
+
+      #Video
+      - {id: 201, cat: Movies, desc: "Movies"}
+      - {id: 202, cat: Movies/DVD, desc: "Movies DVDR"}
+      - {id: 203, cat: Audio/Video, desc: "Music videos"}
+      - {id: 204, cat: Movies/Other, desc: "Movie clips"}
+      - {id: 205, cat: TV, desc: "TV shows"}
+      - {id: 206, cat: TV/Other, desc: "Handheld"}
+      - {id: 207, cat: Movies/HD, desc: "HD - Movies"}
+      - {id: 208, cat: TV/HD, desc: "HD - TV shows"}
+      - {id: 209, cat: Movies/3D, desc: "3D"}
+      - {id: 299, cat: Movies/Other, desc: "Video Other"}
+
+      #Applications
+      - {id: 301, cat: PC, desc: "Windows"}
+      - {id: 302, cat: PC/Mac, desc: "Mac"}
+      - {id: 303, cat: PC, desc: "UNIX"}
+      - {id: 304, cat: PC/Phone-Other, desc: "Handheld"}
+      - {id: 305, cat: PC/Phone-IOS, desc: "IOS (iPad/iPhone)"}
+      - {id: 306, cat: PC/Phone-Android, desc: "Android"}
+      - {id: 399, cat: PC, desc: "Other OS"}
+
+      #Games
+      - {id: 401, cat: PC/Games, desc: "PC"}
+      - {id: 402, cat: PC/Mac, desc: "Mac"}
+      - {id: 403, cat: Console/PS4, desc: "PSx"}
+      - {id: 404, cat: Console/Xbox, desc: "XBOX360"}
+      - {id: 405, cat: Console/Wii, desc: "Wii"}
+      - {id: 406, cat: Console/Other, desc: "Handheld"}
+      - {id: 407, cat: Console/Other, desc: "IOS (iPad/iPhone)"}
+      - {id: 408, cat: Console/Other, desc: "Android"}
+      - {id: 499, cat: Console/Other, desc: "Games Other"}
+
+      #Porn
+      - {id: 501, cat: XXX, desc: "Movies"}
+      - {id: 502, cat: XXX/DVD, desc: "Movies DVDR"}
+      - {id: 503, cat: XXX/Imageset, desc: "Pictures"}
+      - {id: 504, cat: XXX, desc: "Games"}
+      - {id: 505, cat: XXX, desc: "HD - Movies"}
+      - {id: 506, cat: XXX, desc: "Movie clips"}
+      - {id: 599, cat: XXX/Other, desc: "Porn Other"}
+
+      #Other
+      - {id: 601, cat: Books, desc: "E-books"}
+      - {id: 602, cat: Books/Comics, desc: "Comics"}
+      - {id: 603, cat: Books, desc: "Pictures"}
+      - {id: 604, cat: Books, desc: "Covers"}
+      - {id: 605, cat: Books, desc: "Physibles"}
+      - {id: 699, cat: Books/Other, desc: "Other Other"}
+
+    modes:
+      tv-search: [q, season, ep]
+
+  settings: []
+  
+  search:
+    paths:
+      - path: "{{if .Query.Keywords}}/search/{{ .Keywords}}/0/99/{{range .Categories }}{{.}}{{end}}{{else}}/recent{{end}}"
+    keywordsfilters:
+        # currently, the only uploader for General Hospital puts a space between season and episode
+        # this filter searches both formats, so "General Hospital S01E02" becomes "General Hospital S01E02 | (S01 E02)"
+      - name: re_replace
+        args: ["General Hospital S(\\d{2,3})E(\\d{2,3})", "$0 | \\(S$1 E$2\\)"]
+      - name: tolower
+    rows:
+      selector: "#searchResult tbody tr:has(td.vertTh)"
+    fields:
+      category:
+        selector: td:nth-child(1) a:last-child
+        attribute: href
+        filters:
+          - name: split
+            args: [ "/", -1 ]
+      title:
+        selector: .detLink
+        filters:
+          - name: replace
+            args: ["\u000f", ""] # get rid of unwanted character (Example: at the end of https://thepiratebay.org/torrent/18316540/Game.of.Thrones.S07E04.iNTERNAL.1080p.WEBRip.x264-MOROSE_)
+      details:
+        selector: .detLink
+        attribute: href
+      download:
+        selector: td:nth-child(2) a[title^="Download"]
+        attribute: href
+      size:
+        selector: td:nth-child(2) font.detDesc
+        filters:
+          - name: regexp
+            args: "Size (.+?),"
+      date:
+        optional: true
+        # Today 17:37
+        # Y-day 13:04
+        selector: td:nth-child(2) font.detDesc:contains(":")
+        filters:
+          - name: regexp
+            args: "Uploaded (.+?),"
+          - name: replace
+            args: ["\xA0", " "]
+          - name: replace
+            args: ["Y-day", "Yesterday"]
+      date:
+        optional: true
+        # 49 mins ago
+        selector: td:nth-child(2) font.detDesc:contains("ago")
+        filters:
+          - name: regexp
+            args: "Uploaded (.+?),"
+          - name: replace
+            args: ["\xA0", " "]
+      date:
+        optional: true
+        # 04-30 2017
+        selector: td:nth-child(2) font.detDesc:not(:contains("ago")):not(:contains(":"))
+        filters:
+          - name: regexp
+            args: "Uploaded (.+?),"
+          - name: replace
+            args: ["\xA0", " "]
+          - name: dateparse
+            args: "01-02 2006"
+      seeders:
+        selector: td:nth-child(3)
+      leechers:
+        selector: td:nth-child(4)
+      downloadvolumefactor:
+        text: "0"
+      uploadvolumefactor:
+        text: "1"

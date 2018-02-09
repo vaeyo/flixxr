@@ -1,0 +1,13 @@
+[Unit]
+Description=Cloud Commander
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/usr/lib/node_modules/cloudcmd/bin/
+ExecStart=/usr/bin/node cloudcmd.js --config /opt/cloudcmd/cloudcmd.json
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
